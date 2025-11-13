@@ -4,12 +4,14 @@ This n8n workflow allows you to delete Gmail emails based on a keyword search.
 
 ## Workflow Overview
 
-The workflow consists of 4 nodes:
+The workflow consists of 6 nodes:
 
 1. **Manual Trigger** - Starts the workflow when you click "Test workflow"
 2. **Set Keyword** - Defines the keyword to search for (default: "spam")
 3. **Gmail - Search Emails** - Searches Gmail for emails matching the keyword
-4. **Gmail - Delete Email** - Deletes all emails found in the search
+4. **Check if Results Found** - Validates that search returned results before proceeding
+5. **Gmail - Delete Email** - Deletes all emails found in the search (only runs if results exist)
+6. **No Emails Found** - End node when no matching emails are found
 
 ## Setup Instructions
 
@@ -69,7 +71,21 @@ By default, the workflow processes up to 50 emails at a time. You can:
 1. Open the workflow in n8n
 2. Modify the keyword in the "Set Keyword" node if needed
 3. Click "Test workflow" to run
-4. The workflow will search and delete all matching emails
+4. The workflow will:
+   - Search for emails matching your keyword
+   - Check if any results were found
+   - If results found: Delete all matching emails
+   - If no results: End gracefully without errors
+
+## How the Result Check Works
+
+The **Check if Results Found** node prevents errors when no emails match your search:
+
+- **Condition**: `$input.all().length > 0`
+- **If TRUE** (emails found): Proceeds to delete emails
+- **If FALSE** (no emails found): Routes to "No Emails Found" node and stops
+
+This prevents the delete operation from failing when the search returns zero results.
 
 ## ⚠️ Important Warnings
 

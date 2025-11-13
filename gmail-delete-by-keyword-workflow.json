@@ -46,8 +46,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2,
       "position": [
-        860,
-        300
+        1060,
+        220
       ],
       "credentials": {
         "gmailOAuth2": {
@@ -55,6 +55,52 @@
           "name": "Gmail account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-results-exist",
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e4f5a6b7-c8d9-0123-def4-567890123456",
+      "name": "Check if Results Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        840,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "passThrough",
+        "options": {}
+      },
+      "id": "f5a6b7c8-d9e0-1234-5678-901234567890",
+      "name": "No Emails Found",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        400
+      ]
     },
     {
       "parameters": {
@@ -106,7 +152,25 @@
       "main": [
         [
           {
+            "node": "Check if Results Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Results Found": {
+      "main": [
+        [
+          {
             "node": "Gmail - Delete Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Emails Found",
             "type": "main",
             "index": 0
           }
