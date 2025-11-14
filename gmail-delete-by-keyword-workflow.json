@@ -140,13 +140,19 @@
               "name": "keyword",
               "value": "={{ $('Set Keyword').item.json.keyword }}",
               "type": "string"
+            },
+            {
+              "id": "increment-iteration",
+              "name": "iteration",
+              "value": "={{ $json.iteration ? $json.iteration + 1 : $('Set Keyword').item.json.iteration + 1 }}",
+              "type": "number"
             }
           ]
         },
         "options": {}
       },
       "id": "c8d9e0f1-a2b3-4567-89ab-cdef01234567",
-      "name": "Preserve Keyword for Loop",
+      "name": "Increment Loop Counter",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.3,
       "position": [
@@ -156,11 +162,32 @@
     },
     {
       "parameters": {
-        "values": {
-          "string": [
+        "jsCode": "// Display current iteration in execution log\nconst iteration = $input.item.json.iteration;\nconst keyword = $input.item.json.keyword;\n\nconsole.log(`🔄 Loop Iteration ${iteration} - Searching for: \"${keyword}\"`);\n\nreturn $input.item;"
+      },
+      "id": "d9e0f1a2-b3c4-5678-9abc-def012345678",
+      "name": "Log Current Iteration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1860,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
             {
+              "id": "set-keyword",
               "name": "keyword",
-              "value": "spam"
+              "value": "spam",
+              "type": "string"
+            },
+            {
+              "id": "init-iteration",
+              "name": "iteration",
+              "value": 1,
+              "type": "number"
             }
           ]
         },
@@ -255,14 +282,25 @@
       "main": [
         [
           {
-            "node": "Preserve Keyword for Loop",
+            "node": "Increment Loop Counter",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Preserve Keyword for Loop": {
+    "Increment Loop Counter": {
+      "main": [
+        [
+          {
+            "node": "Log Current Iteration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Current Iteration": {
       "main": [
         [
           {

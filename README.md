@@ -4,17 +4,19 @@ This n8n workflow allows you to delete Gmail emails based on a keyword search.
 
 ## Workflow Overview
 
-The workflow consists of 9 nodes and **automatically loops** until all matching emails are deleted:
+The workflow consists of 11 nodes and **automatically loops** until all matching emails are deleted:
 
 1. **Manual Trigger** - Starts the workflow when you click "Test workflow"
-2. **Set Keyword** - Defines the keyword to search for (default: "spam")
+2. **Set Keyword** - Defines the keyword to search for (default: "spam") and initializes iteration counter
 3. **Gmail - Search Emails** - Searches Gmail for emails matching the keyword (max 50 per iteration)
 4. **Check if Results Found** - Validates that search returned results before proceeding
 5. **Gmail - Delete Email** - Deletes all emails found in the search (only runs if results exist)
 6. **Aggregate Deleted Emails** - Combines all deleted email results into one item
 7. **Wait 30 Seconds** - Pauses execution to avoid Gmail API rate limits
-8. **Preserve Keyword for Loop** - Maintains the search keyword and loops back to step 3
-9. **No Emails Found** - End node when no matching emails are found (stops the loop)
+8. **Increment Loop Counter** - Increases the iteration counter by 1
+9. **Log Current Iteration** - Displays which loop iteration is running (e.g., "Loop Iteration 3")
+10. **Loop Back to Search** - Returns to step 3 to search again
+11. **No Emails Found** - End node when no matching emails are found (stops the loop)
 
 ## Setup Instructions
 
@@ -102,17 +104,46 @@ By default, the workflow processes up to 50 emails at a time. You can:
 
 The loop stops automatically when the Gmail search returns **zero results**, meaning all matching emails have been deleted.
 
+### Tracking Progress
+
+The workflow includes an **iteration counter** to help you track progress:
+
+- **Iteration counter starts at 1** when you run the workflow
+- **Increments by 1** after each loop
+- **Displayed in execution log**: Look for messages like:
+  - `🔄 Loop Iteration 1 - Searching for: "spam"`
+  - `🔄 Loop Iteration 2 - Searching for: "spam"`
+  - `🔄 Loop Iteration 3 - Searching for: "spam"`
+
+**How to view iteration logs:**
+1. Run the workflow
+2. Click on the "Log Current Iteration" node in the execution
+3. Check the output or browser console for iteration messages
+4. Each node execution shows which iteration you're currently on
+
+This makes it easy to see how many loops have run and estimate remaining time!
+
 ## Example Execution
 
 If you have 237 emails matching "spam":
-- **Loop 1**: Delete 50 emails (187 remaining) → Wait 30s
-- **Loop 2**: Delete 50 emails (137 remaining) → Wait 30s
-- **Loop 3**: Delete 50 emails (87 remaining) → Wait 30s
-- **Loop 4**: Delete 50 emails (37 remaining) → Wait 30s
-- **Loop 5**: Delete 37 emails (0 remaining) → Wait 30s
-- **Loop 6**: Find 0 emails → **Stop**
+- **🔄 Loop Iteration 1**: Delete 50 emails (187 remaining) → Wait 30s
+- **🔄 Loop Iteration 2**: Delete 50 emails (137 remaining) → Wait 30s
+- **🔄 Loop Iteration 3**: Delete 50 emails (87 remaining) → Wait 30s
+- **🔄 Loop Iteration 4**: Delete 50 emails (37 remaining) → Wait 30s
+- **🔄 Loop Iteration 5**: Delete 37 emails (0 remaining) → Wait 30s
+- **🔄 Loop Iteration 6**: Find 0 emails → **Stop**
 
 **Total time**: ~3 minutes (5 loops × 30s + processing time)
+
+**What you'll see in the execution log:**
+```
+🔄 Loop Iteration 1 - Searching for: "spam"
+🔄 Loop Iteration 2 - Searching for: "spam"
+🔄 Loop Iteration 3 - Searching for: "spam"
+🔄 Loop Iteration 4 - Searching for: "spam"
+🔄 Loop Iteration 5 - Searching for: "spam"
+🔄 Loop Iteration 6 - Searching for: "spam"
+```
 
 ## ⚠️ Important Warnings
 
