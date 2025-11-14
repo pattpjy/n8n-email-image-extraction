@@ -4,14 +4,17 @@ This n8n workflow allows you to delete Gmail emails based on a keyword search.
 
 ## Workflow Overview
 
-The workflow consists of 6 nodes:
+The workflow consists of 9 nodes and **automatically loops** until all matching emails are deleted:
 
 1. **Manual Trigger** - Starts the workflow when you click "Test workflow"
 2. **Set Keyword** - Defines the keyword to search for (default: "spam")
-3. **Gmail - Search Emails** - Searches Gmail for emails matching the keyword
+3. **Gmail - Search Emails** - Searches Gmail for emails matching the keyword (max 50 per iteration)
 4. **Check if Results Found** - Validates that search returned results before proceeding
 5. **Gmail - Delete Email** - Deletes all emails found in the search (only runs if results exist)
-6. **No Emails Found** - End node when no matching emails are found
+6. **Aggregate Deleted Emails** - Combines all deleted email results into one item
+7. **Wait 30 Seconds** - Pauses execution to avoid Gmail API rate limits
+8. **Preserve Keyword for Loop** - Maintains the search keyword and loops back to step 3
+9. **No Emails Found** - End node when no matching emails are found (stops the loop)
 
 ## Setup Instructions
 
@@ -71,28 +74,55 @@ By default, the workflow processes up to 50 emails at a time. You can:
 1. Open the workflow in n8n
 2. Modify the keyword in the "Set Keyword" node if needed
 3. Click "Test workflow" to run
-4. The workflow will:
-   - Search for emails matching your keyword
-   - Check if any results were found
-   - If results found: Delete all matching emails
-   - If no results: End gracefully without errors
+4. The workflow will **automatically loop** until all matching emails are deleted:
+   - **Iteration 1**: Search for up to 50 emails → Delete → Wait 30s
+   - **Iteration 2**: Search for up to 50 emails → Delete → Wait 30s
+   - **Iteration 3**: Search for up to 50 emails → Delete → Wait 30s
+   - **...continues until no more emails match...**
+   - **Final Iteration**: Search returns 0 results → Stops
 
-## How the Result Check Works
+## How the Automatic Looping Works
 
-The **Check if Results Found** node prevents errors when no emails match your search:
+### The Loop Mechanism
 
-- **Condition**: `$input.all().length > 0`
-- **If TRUE** (emails found): Proceeds to delete emails
-- **If FALSE** (no emails found): Routes to "No Emails Found" node and stops
+1. **Search**: Finds up to 50 emails matching your keyword
+2. **Check**: If results found → proceed, if not → stop
+3. **Delete**: Removes all found emails (processes each one)
+4. **Aggregate**: Combines deletion results into one item
+5. **Wait**: Pauses for 30 seconds (prevents API rate limits)
+6. **Loop Back**: Returns to step 1 and searches again
 
-This prevents the delete operation from failing when the search returns zero results.
+### Why the 30-Second Delay?
+
+- **Prevents Gmail API rate limiting** (250 quota units per user per second)
+- **Allows Gmail to process deletions** before searching again
+- **Safe and respectful** to Google's servers
+
+### When Does It Stop?
+
+The loop stops automatically when the Gmail search returns **zero results**, meaning all matching emails have been deleted.
+
+## Example Execution
+
+If you have 237 emails matching "spam":
+- **Loop 1**: Delete 50 emails (187 remaining) → Wait 30s
+- **Loop 2**: Delete 50 emails (137 remaining) → Wait 30s
+- **Loop 3**: Delete 50 emails (87 remaining) → Wait 30s
+- **Loop 4**: Delete 50 emails (37 remaining) → Wait 30s
+- **Loop 5**: Delete 37 emails (0 remaining) → Wait 30s
+- **Loop 6**: Find 0 emails → **Stop**
+
+**Total time**: ~3 minutes (5 loops × 30s + processing time)
 
 ## ⚠️ Important Warnings
 
+- **Automatic Looping**: The workflow will continue running until ALL matching emails are deleted
+- **Long Execution Time**: If you have thousands of emails, the workflow may run for 30+ minutes
 - **Permanent Deletion**: Deleted emails go to Trash and are permanently deleted after 30 days
 - **Test First**: Start with a small limit and specific keyword to test
 - **Backup**: Consider backing up important emails before running
-- **Review Results**: Check the execution log to see which emails were deleted
+- **Cannot Stop Mid-Execution**: Once started, the loop continues until no results are found
+- **Review Results**: Check the execution log to see which emails were deleted in each iteration
 
 ## Scheduling the Workflow
 

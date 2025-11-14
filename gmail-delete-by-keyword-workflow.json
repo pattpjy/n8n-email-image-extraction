@@ -104,6 +104,58 @@
     },
     {
       "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "a6b7c8d9-e0f1-2345-6789-0123456789ab",
+      "name": "Aggregate Deleted Emails",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "b7c8d9e0-f1a2-3456-789a-bcdef0123456",
+      "name": "Wait 30 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        220
+      ],
+      "webhookId": "wait-before-loop"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "preserve-keyword",
+              "name": "keyword",
+              "value": "={{ $('Set Keyword').item.json.keyword }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c8d9e0f1-a2b3-4567-89ab-cdef01234567",
+      "name": "Preserve Keyword for Loop",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        1660,
+        220
+      ]
+    },
+    {
+      "parameters": {
         "values": {
           "string": [
             {
@@ -171,6 +223,50 @@
         [
           {
             "node": "No Emails Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Delete Email": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Deleted Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Deleted Emails": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Preserve Keyword for Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preserve Keyword for Loop": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Search Emails",
             "type": "main",
             "index": 0
           }
